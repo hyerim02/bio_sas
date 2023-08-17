@@ -1,0 +1,44 @@
+# 파일 불러오기 
+effect2 <- read.csv("C:\\Users\\phl02\\Desktop\\P\\bio_sas\\data\\bin12.csv")
+head(effect2)
+
+# 분석 진행
+library(meta)
+meta2 <- metabin(a,a+b,c,c+d,data=effect2,sm='OR',method='Inverse',study)
+meta2
+
+#효과크기를 그래프로 확인 
+forest(meta2,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+
+# 환산
+meta2_result <- c(2.0210,1.5158,2.6945,1.7187,1.0432,2.8315)
+log<- round((log(meta2_result)),2)
+log
+
+# 결과 정리 
+library(kableExtra)
+result2 <- matrix(0,2,9)
+colnames(result2) <- c('OR','95% CI_low','95% CI_up',
+                       'ES','95% CI_low','95% CI_up',
+                       'p','Q(df)',expression(I^2))
+row.names(result2) <- c('Fixed','random')
+result2[1,1] <- round(meta2_result[1],2)
+result2[1,2] <- round(meta2_result[2],2)
+result2[1,3] <- round(meta2_result[3],2)
+result2[2,1] <- round(meta2_result[4],2)
+result2[2,2] <- round(meta2_result[5],2)
+result2[2,3] <- round(meta2_result[6],2)
+result2[1,4] <- round(log[1],2)
+result2[1,5] <- round(log[2],2)
+result2[1,6] <- round(log[3],2)
+result2[2,4] <- round(log[4],2)
+result2[2,5] <- round(log[5],2)
+result2[2,6] <- round(log[6],2)
+result2[1,7] <- round(meta2$pval.fixed,3)
+result2[2,7] <- round(meta2$pval.random,3)
+for (i in 1:2){
+  if (result2[i,7] <0.001){result2[i,7] <- '<.001'} 
+}
+result2[,8] <- paste(round(meta2$Q,2),'(', meta2$df.Q,')')
+result2[,9] <- round(meta2$I2*100,2)
+kable(result2)

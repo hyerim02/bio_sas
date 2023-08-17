@@ -1,0 +1,65 @@
+---
+title: "effect3"
+date: "2023-08-18"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+
+# 파일 불러오기 
+
+```{r }
+effect3 <- read.csv("C:\\Users\\phl02\\Desktop\\P\\bio_sas\\data\\prop12.csv")
+head(effect3)
+```
+\newpage  
+
+# 분석 진행
+
+'metaprop'명령어를 사용하여 분석을 진행
+
+```{r message=FALSE}
+library(meta)
+meta3 <- metaprop(event,n,data=effect3,sm='PRAW',method.ci ='CP',study)
+meta3
+```
+
+\newpage  
+
+## 효과크기 확인 
+
+```{r fig.width=11}
+forest(meta3,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+
+
+## 변수로 저장 
+```{r}
+meta3_result <- c(meta3$TE.fixed,meta3$lower.fixed,meta3$upper.fixed,
+                 meta3$TE.random,meta3$lower.random,meta3$upper.random)
+
+meta3_result
+```
+
+\newpage 
+
+# 결과 정리 
+```{r message=FALSE,warning=FALSE}
+library(kableExtra)
+result3 <- matrix(0,2,5)
+colnames(result3) <- c('ES','95% CI_low','95% CI_up','Q(df)',expression('I^2'))
+row.names(result3) <- c('Fixed','random')
+result3[1,1] <- round(meta3_result[1],2)
+result3[1,2] <- round(meta3_result[2],2)
+result3[1,3] <- round(meta3_result[3],2)
+result3[2,1] <- round(meta3_result[4],2)
+result3[2,2] <- round(meta3_result[5],2)
+result3[2,3] <- round(meta3_result[6],2)
+result3[,4] <- paste(round(meta3$Q,2),'(', meta3$df.Q,')')
+result3[,5] <- round(meta3$I2*100,2)
+kable(result3)
+```
+
+
