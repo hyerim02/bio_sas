@@ -1,0 +1,117 @@
+---
+title: "조절효과_ANOVA"
+date: "2023-08-23"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+# 파일 불러오기 
+
+```{r message=FALSE}
+setwd('C:\\Users\\phl02\\Desktop\\P\\bio_sas')
+library(readxl)
+effect <- read_excel("data\\metaanova1.xlsx")
+effect
+```
+\newpage  
+
+# 분석 진행
+
+```{r message=FALSE}
+library(meta)
+meta_anova <- metacont(n1,m1,s1,n2,m2,s2,data=effect,sm='SMD',
+                       method.smd ='Hedges',study)
+meta_anova
+```
+\newpage  
+
+subgroup은 하위 집단에 따라 비교하라는 의미
+
+```{r message=FALSE}
+meta_anova1 <- metacont(n1,m1,s1,n2,m2,s2,data=effect,sm='SMD',
+                       method.smd ='Hedges',study, subgroup = group)
+meta_anova1
+```
+\newpage  
+
+tau.common을 추가하여 동일한 분산으로 가정해서 분석
+
+```{r message=FALSE}
+meta_anova2 <- metacont(n1,m1,s1,n2,m2,s2,data=effect,sm='SMD',
+                       method.smd ='Hedges',study, subgroup = group,
+                       tau.common = T)
+meta_anova2
+```
+
+\newpage
+
+## 하위 집단 메타분석 결과 
+
+```{r fig.width=10, fig.height=6,warning=FALSE}
+forest(meta_anova2,test.subgroup.random = T,resid.hetstat = F,
+       layout = 'subgroup',calcwidth.tests = T,
+       col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+
+\newpage
+
+회귀분석으로 메타분석의 설명력과 QM을 확인 
+```{r}
+metareg<- metareg(meta_anova2,group)
+metareg
+```
+\newpage
+
+## 사후 검정
+
+```{r}
+meta2 <- subset(effect,group!='2주')
+meta4 <- subset(effect,group!='4주')
+meta6 <- subset(effect,group!='6주')
+
+meta2_anova <- metacont(n1,m1,s1,n2,m2,s2,data=meta2,sm='SMD',
+                       method.smd ='Hedges',study, subgroup = group)
+meta4_anova <- metacont(n1,m1,s1,n2,m2,s2,data=meta4,sm='SMD',
+                       method.smd ='Hedges',study, subgroup = group)
+meta6_anova <- metacont(n1,m1,s1,n2,m2,s2,data=meta6,sm='SMD',
+                       method.smd ='Hedges',study, subgroup = group)
+
+```
+
+\newpage 
+
+```{r fig.width=12, fig.height=6,,warning=FALSE}
+forest(meta2_anova,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+\newpage 
+
+```{r fig.width=12, fig.height=6,warning=FALSE}
+forest(meta4_anova,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+\newpage 
+
+```{r fig.width=12, fig.height=6,warning=FALSE}
+forest(meta6_anova,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+\newpage 
+
+# 결과 정리 
+```{r message=FALSE,warning=FALSE}
+library(kableExtra)
+result <- matrix(0,3,7)
+colnames(result) <- c('k','ES','95% CI_low',
+                      '95% CI_up','Q(df)','R^2','P')
+row.names(result) <- c('2주','4주','6주')
+result[,1] <- meta_anova2$k.w
+result[,2] <- round(meta_anova2$TE.random.w,3)
+result[,3] <- round(meta_anova2$lower.random.w,3)
+result[,4] <- round(meta_anova2$upper.random.w,3)
+result[,5] <- paste(round(meta_anova2$Q,2),'(', meta_anova2$df.Q,')')
+result[,6] <- round(metareg$R2/100,3)
+result[,7] <- round(meta_anova2$pval.random,3)
+kable(result)
+```
+
+

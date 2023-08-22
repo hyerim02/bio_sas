@@ -1,0 +1,84 @@
+---
+title: "조절효과_회귀분석"
+date: "2023-08-23"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+# 파일 불러오기 
+
+```{r message=FALSE}
+setwd('C:\\Users\\phl02\\Desktop\\P\\bio_sas')
+effect_reg <- read.csv('data\\metareg.csv')
+effect_reg
+```
+\newpage  
+
+# 분석 진행
+
+```{r message=FALSE}
+library(meta)
+meta_reg <- metabin(a,n1,b,n2,data=effect_reg,sm='RR',
+                       method='I',studlab = paste(study))
+meta_reg
+```
+
+\newpage
+
+## 하위 집단 메타분석 결과 
+
+```{r fig.width=10, fig.height=6}
+forest(meta_reg,col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+
+\newpage
+
+회귀분석으로 메타분석의 설명력과 QM을 확인 
+```{r}
+metareg1<- metareg(meta_reg,age)
+metareg1
+```
+\newpage
+
+예측값과 기댓값을 출력
+
+```{r}
+pred_reg<- predict(metareg1)
+pred_reg
+```
+```{r}
+fit_reg <- exp(fitted(metareg1))
+fit_reg
+```
+\newpage 
+
+회귀식 결과를 그래프로 확인  
+```{r fig.width=12, fig.height=6}
+bubble(metareg1,col.line = 'deepskyblue1',bg = 'deeppink1',studlab = T)
+```
+\newpage 
+
+# 결과 정리 
+```{r message=FALSE,warning=FALSE}
+library(kableExtra)
+result <- matrix(0,2,8)
+colnames(result) <- c('RR(95% CI)','hete_I^2','hete_p',
+                      'subg_QM','sub_p','meta_B','meta_p','meta_R^2')
+row.names(result) <- c('intercept','평균 나이')
+result[,1] <- paste('0.81','(0.68,0.97)')
+result[,2] <- round(meta_reg$I2,3)
+result[,3] <- round(meta_reg$pval.Q,4)
+for (i in 1:2){
+  if (result[i,3]<0.001){result[i,3]='<.001'}
+}
+result[,4] <- round(metareg1$QM,3)
+result[,5] <- round(metareg1$QMp,3)
+result[,6] <- round(metareg1$b,3)
+result[,7] <- round(metareg1$pval,3)
+result[,8] <- round(metareg1$R2,3)
+kable(result)
+```
+
+
