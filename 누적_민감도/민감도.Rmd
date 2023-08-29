@@ -1,0 +1,79 @@
+---
+title: "민감도"
+date: "2023-08-29"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+# 파일 불러오기 
+
+```{r message=FALSE}
+setwd('C:\\Users\\phl02\\Desktop\\P\\bio_sas')
+sensi<- read.csv("data\\sm.csv")
+sensi
+```
+
+
+\newpage  
+
+# 분석 진행
+
+```{r message=FALSE}
+library(meta)
+meta_sensi <- metagen(g,se,data=sensi,sm='SMD',study)
+meta_sensi
+```  
+
+
+\newpage  
+
+# 그래프 
+```{r, fig.width=11.5,warning=FALSE}
+forest(meta_sensi,
+       col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+\newpage
+
+# 민감도 검사
+```{r}
+meta_sensi2<- metainf(meta_sensi)
+meta_sensi2
+```
+\newpage
+
+# 그래프
+```{r,fig.width=11, message=FALSE}
+forest(meta_sensi2,
+       col.diamond = 'deepskyblue1',col.square = 'deeppink1')
+```
+
+\newpage
+
+# 두 번째 민감도 검사 
+```{r, fig.width=11, message=FALSE}
+baujat(meta_sensi)
+```
+
+\newpage 
+
+# 세 번째 민감도 검사 
+```{r message=FALSE,warning=FALSE}
+library(metafor)
+res <- rma(g,se^2,measure = 'SMD',method = 'DL',slab = paste(study),data=sensi)
+res
+
+```
+
+```{r}
+inf<- influence(res)
+inf
+```
+
+\newpage
+
+```{r}
+plot(inf)
+```
+
